@@ -566,7 +566,7 @@ static void Buffer_AppendUnsignedLongUnchecked(JSONObjectEncoder *enc, JSUINT64 
   enc->offset += (wstr - (enc->offset));
 }
 
-static int Buffer_AppendDoubleDconv(JSOBJ obj, JSONObjectEncoder *enc, double value)
+static int Buffer_AppendDoubleUnchecked(JSOBJ obj, JSONObjectEncoder *enc, double value)
 {
   char buf[128];
   int strlength;

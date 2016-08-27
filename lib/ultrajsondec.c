@@ -77,13 +77,26 @@ static JSOBJ SetError( struct DecoderState *ds, int offset, const char *message)
   return NULL;
 }
 
-static FASTCALL_ATTR JSOBJ FASTCALL_MSVC decodeDouble(struct DecoderState *ds)
+static double createDouble(double intNeg, double intValue, double frcValue, int frcDecimalCount)
 {
-  int processed_characters_count;
-  int len = (int)(ds->end - ds->start);
-  double value = dconv_s2d(ds->start, len, &processed_characters_count);
-  ds->lastType = JT_DOUBLE;
-  ds->start += processed_characters_count;
+  static const double g_pow10[] = {1.0, 0.1, 0.01, 0.001, 0.0001, 0.00001, 0.000001,0.0000001, 0.00000001, 0.000000001, 0.0000000001, 0.00000000001, 0.000000000001, 0.0000000000001, 0.00000000000001, 0.000000000000001};
+  return (intValue + (frcValue * g_pow10[frcDecimalCount])) * intNeg;
+}
+
+static FASTCALL_ATTR JSOBJ FASTCALL_MSVC decodePreciseFloat(struct DecoderState *ds)
+{
+  char *end;
+  double value;
+  errno = 0;
+
+  value = strtod(ds->start, &end);
+
+  if (errno == ERANGE)
+  {
+    return SetError(ds, -1, "Range error when decoding numeric as double");
+  }
+
+  ds->start = end;
   return ds->dec->newDouble(ds->prv, value);
 }
 

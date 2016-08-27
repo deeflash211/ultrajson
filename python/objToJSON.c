@@ -178,6 +178,53 @@ static void *PyRawJSONToUTF8(JSOBJ _obj, JSONTypeContext *tc, void *outValue, si
   }
 }
 
+static void *PyDateTimeToINT64(JSOBJ _obj, JSONTypeContext *tc, void *outValue, size_t *_outLen)
+{
+  PyObject *obj = (PyObject *) _obj;
+  PyObject *date, *ord, *utcoffset;
+  int y, m, d, h, mn, s, days;
+
+  utcoffset = PyObject_CallMethod(obj, "utcoffset", NULL);
+  if(utcoffset != Py_None){
+    obj = PyNumber_Subtract(obj, utcoffset);
+  }
+
+  y = PyDateTime_GET_YEAR(obj);
+  m = PyDateTime_GET_MONTH(obj);
+  d = PyDateTime_GET_DAY(obj);
+  h = PyDateTime_DATE_GET_HOUR(obj);
+  mn = PyDateTime_DATE_GET_MINUTE(obj);
+  s = PyDateTime_DATE_GET_SECOND(obj);
+
+  date = PyDate_FromDate(y, m, 1);
+  ord = PyObject_CallMethod(date, "toordinal", NULL);
+  days = PyInt_AS_LONG(ord) - EPOCH_ORD + d - 1;
+  Py_DECREF(date);
+  Py_DECREF(ord);
+  *( (JSINT64 *) outValue) = (((JSINT64) ((days * 24 + h) * 60 + mn)) * 60 + s);
+  return NULL;
+}
+
+static void *PyDateToINT64(JSOBJ _obj, JSONTypeContext *tc, void *outValue, size_t *_outLen)
+{
+  PyObject *obj = (PyObject *) _obj;
+  PyObject *date, *ord;
+  int y, m, d, days;
+
+  y = PyDateTime_GET_YEAR(obj);
+  m = PyDateTime_GET_MONTH(obj);
+  d = PyDateTime_GET_DAY(obj);
+
+  date = PyDate_FromDate(y, m, 1);
+  ord = PyObject_CallMethod(date, "toordinal", NULL);
+  days = PyInt_AS_LONG(ord) - EPOCH_ORD + d - 1;
+  Py_DECREF(date);
+  Py_DECREF(ord);
+  *( (JSINT64 *) outValue) = ((JSINT64) days * 86400);
+
+  return NULL;
+}
+
 static int Tuple_iterNext(JSOBJ obj, JSONTypeContext *tc)
 {
   PyObject *item;
@@ -195,6 +242,8 @@ static int Tuple_iterNext(JSOBJ obj, JSONTypeContext *tc)
 }
 
 static void Tuple_iterEnd(JSOBJ obj, JSONTypeContext *tc)
+<<<<<<< HEAD
+=======
 {
 }
 
@@ -208,6 +257,165 @@ static char *Tuple_iterGetName(JSOBJ obj, JSONTypeContext *tc, size_t *outLen)
   return NULL;
 }
 
+static int Iter_iterNext(JSOBJ obj, JSONTypeContext *tc)
+{
+  PyObject *item;
+
+  if (GET_TC(tc)->itemValue)
+  {
+    Py_DECREF(GET_TC(tc)->itemValue);
+    GET_TC(tc)->itemValue = NULL;
+  }
+
+  if (GET_TC(tc)->iterator == NULL)
+  {
+    return 0;
+  }
+
+  item = PyIter_Next(GET_TC(tc)->iterator);
+
+  if (item == NULL)
+  {
+    return 0;
+  }
+
+  GET_TC(tc)->itemValue = item;
+  return 1;
+}
+
+static void Iter_iterEnd(JSOBJ obj, JSONTypeContext *tc)
+>>>>>>> 6cf6c7f... added "static" to C functions, where possible
+{
+}
+
+<<<<<<< HEAD
+static JSOBJ Tuple_iterGetValue(JSOBJ obj, JSONTypeContext *tc)
+=======
+static JSOBJ Iter_iterGetValue(JSOBJ obj, JSONTypeContext *tc)
+>>>>>>> 6cf6c7f... added "static" to C functions, where possible
+{
+  return GET_TC(tc)->itemValue;
+}
+
+<<<<<<< HEAD
+static char *Tuple_iterGetName(JSOBJ obj, JSONTypeContext *tc, size_t *outLen)
+=======
+static char *Iter_iterGetName(JSOBJ obj, JSONTypeContext *tc, size_t *outLen)
+>>>>>>> 6cf6c7f... added "static" to C functions, where possible
+{
+  return NULL;
+}
+
+<<<<<<< HEAD
+=======
+static void Dir_iterEnd(JSOBJ obj, JSONTypeContext *tc)
+{
+  if (GET_TC(tc)->itemValue)
+  {
+    Py_DECREF(GET_TC(tc)->itemValue);
+    GET_TC(tc)->itemValue = NULL;
+  }
+
+  if (GET_TC(tc)->itemName)
+  {
+    Py_DECREF(GET_TC(tc)->itemName);
+    GET_TC(tc)->itemName = NULL;
+  }
+
+  Py_DECREF( (PyObject *) GET_TC(tc)->attrList);
+  PRINTMARK();
+}
+
+static int Dir_iterNext(JSOBJ _obj, JSONTypeContext *tc)
+{
+  PyObject *obj = (PyObject *) _obj;
+  PyObject *itemValue = GET_TC(tc)->itemValue;
+  PyObject *itemName = GET_TC(tc)->itemName;
+  PyObject* attr;
+  PyObject* attrName;
+  char* attrStr;
+
+  if (itemValue)
+  {
+    Py_DECREF(GET_TC(tc)->itemValue);
+    GET_TC(tc)->itemValue = itemValue = NULL;
+  }
+
+  if (itemName)
+  {
+    Py_DECREF(GET_TC(tc)->itemName);
+    GET_TC(tc)->itemName = itemName = NULL;
+  }
+
+  for (; GET_TC(tc)->index  < GET_TC(tc)->size; GET_TC(tc)->index ++)
+  {
+    attrName = PyList_GET_ITEM(GET_TC(tc)->attrList, GET_TC(tc)->index);
+#if PY_MAJOR_VERSION >= 3
+    attr = PyUnicode_AsUTF8String(attrName);
+#else
+    attr = attrName;
+    Py_INCREF(attr);
+#endif
+    attrStr = PyString_AS_STRING(attr);
+
+    if (attrStr[0] == '_')
+    {
+      PRINTMARK();
+      Py_DECREF(attr);
+      continue;
+    }
+
+    itemValue = PyObject_GetAttr(obj, attrName);
+    if (itemValue == NULL)
+    {
+      PyErr_Clear();
+      Py_DECREF(attr);
+      PRINTMARK();
+      continue;
+    }
+
+    if (PyCallable_Check(itemValue))
+    {
+      Py_DECREF(itemValue);
+      Py_DECREF(attr);
+      PRINTMARK();
+      continue;
+    }
+
+    PRINTMARK();
+    itemName = attr;
+    break;
+  }
+
+  if (itemName == NULL)
+  {
+    GET_TC(tc)->index = GET_TC(tc)->size;
+    GET_TC(tc)->itemValue = NULL;
+    return 0;
+  }
+
+  GET_TC(tc)->itemName = itemName;
+  GET_TC(tc)->itemValue = itemValue;
+  GET_TC(tc)->index ++;
+
+  PRINTMARK();
+  return 1;
+}
+
+static JSOBJ Dir_iterGetValue(JSOBJ obj, JSONTypeContext *tc)
+{
+  PRINTMARK();
+  return GET_TC(tc)->itemValue;
+}
+
+static char *Dir_iterGetName(JSOBJ obj, JSONTypeContext *tc, size_t *outLen)
+{
+  PRINTMARK();
+  *outLen = PyString_GET_SIZE(GET_TC(tc)->itemName);
+  return PyString_AS_STRING(GET_TC(tc)->itemName);
+}
+
+>>>>>>> 6cf6c7f... added "static" to C functions, where possible
 static int List_iterNext(JSOBJ obj, JSONTypeContext *tc)
 {
   if (GET_TC(tc)->index >= GET_TC(tc)->size)
@@ -429,6 +637,10 @@ static char *SortedDict_iterGetName(JSOBJ obj, JSONTypeContext *tc, size_t *outL
   return PyString_AS_STRING(GET_TC(tc)->itemName);
 }
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 6cf6c7f... added "static" to C functions, where possible
 static void SetupDictIter(PyObject *dictObj, TypeContext *pc, JSONObjectEncoder *enc)
 {
   pc->dictObj = dictObj;

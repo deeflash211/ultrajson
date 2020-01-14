@@ -115,7 +115,7 @@ typedef uint32_t JSUINT32;
 #define FASTCALL_ATTR
 #endif
 
-#define INLINE_PREFIX static inline
+#define INLINE_PREFIX inline
 
 #ifdef __GNUC__
 #define LIKELY(x)       __builtin_expect(!!(x), 1)

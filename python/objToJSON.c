@@ -242,8 +242,6 @@ static int Tuple_iterNext(JSOBJ obj, JSONTypeContext *tc)
 }
 
 static void Tuple_iterEnd(JSOBJ obj, JSONTypeContext *tc)
-<<<<<<< HEAD
-=======
 {
 }
 
@@ -284,30 +282,19 @@ static int Iter_iterNext(JSOBJ obj, JSONTypeContext *tc)
 }
 
 static void Iter_iterEnd(JSOBJ obj, JSONTypeContext *tc)
->>>>>>> 6cf6c7f... added "static" to C functions, where possible
 {
 }
 
-<<<<<<< HEAD
-static JSOBJ Tuple_iterGetValue(JSOBJ obj, JSONTypeContext *tc)
-=======
 static JSOBJ Iter_iterGetValue(JSOBJ obj, JSONTypeContext *tc)
->>>>>>> 6cf6c7f... added "static" to C functions, where possible
 {
   return GET_TC(tc)->itemValue;
 }
 
-<<<<<<< HEAD
-static char *Tuple_iterGetName(JSOBJ obj, JSONTypeContext *tc, size_t *outLen)
-=======
 static char *Iter_iterGetName(JSOBJ obj, JSONTypeContext *tc, size_t *outLen)
->>>>>>> 6cf6c7f... added "static" to C functions, where possible
 {
   return NULL;
 }
 
-<<<<<<< HEAD
-=======
 static void Dir_iterEnd(JSOBJ obj, JSONTypeContext *tc)
 {
   if (GET_TC(tc)->itemValue)
@@ -415,7 +402,6 @@ static char *Dir_iterGetName(JSOBJ obj, JSONTypeContext *tc, size_t *outLen)
   return PyString_AS_STRING(GET_TC(tc)->itemName);
 }
 
->>>>>>> 6cf6c7f... added "static" to C functions, where possible
 static int List_iterNext(JSOBJ obj, JSONTypeContext *tc)
 {
   if (GET_TC(tc)->index >= GET_TC(tc)->size)
@@ -637,10 +623,7 @@ static char *SortedDict_iterGetName(JSOBJ obj, JSONTypeContext *tc, size_t *outL
   return PyString_AS_STRING(GET_TC(tc)->itemName);
 }
 
-<<<<<<< HEAD
-=======
 
->>>>>>> 6cf6c7f... added "static" to C functions, where possible
 static void SetupDictIter(PyObject *dictObj, TypeContext *pc, JSONObjectEncoder *enc)
 {
   pc->dictObj = dictObj;
